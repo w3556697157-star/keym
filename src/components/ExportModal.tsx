@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api, KeyItem } from "../api";
+import { useI18n } from "../i18n";
 
 export default function ExportModal({
   item,
@@ -8,6 +9,7 @@ export default function ExportModal({
   item: KeyItem;
   onClose: () => void;
 }) {
+  const { t, terr } = useI18n();
   const [password, setPassword] = useState("");
   const [plain, setPlain] = useState("");
   const [error, setError] = useState("");
@@ -22,7 +24,7 @@ export default function ExportModal({
       const p = await api.exportKey(item.id, password);
       setPlain(p);
     } catch (e) {
-      setError(String(e));
+      setError(terr(String(e)));
     } finally {
       setLoading(false);
     }
@@ -42,7 +44,7 @@ export default function ExportModal({
     <div className="modal-mask" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <h3>导出密钥「{item.name}」</h3>
+          <h3>{t("export.title", { name: item.name })}</h3>
           <span className="modal-close" onClick={onClose}>
             ✕
           </span>
@@ -50,10 +52,8 @@ export default function ExportModal({
         <div className="modal-body">
           {!plain ? (
             <>
-              <div className="export-tip">
-                请输入当前账号密码，用于解密该密钥的密文。
-              </div>
-              <label className="form-label">账号密码</label>
+              <div className="export-tip">{t("export.tip")}</div>
+              <label className="form-label">{t("export.pwdLabel")}</label>
               <input
                 className="input"
                 type="password"
@@ -66,7 +66,7 @@ export default function ExportModal({
             </>
           ) : (
             <>
-              <div className="export-tip ok">解密成功，请立即妥善保存：</div>
+              <div className="export-tip ok">{t("export.okTip")}</div>
               <div className="export-result mono">{plain}</div>
             </>
           )}
@@ -75,23 +75,23 @@ export default function ExportModal({
           {!plain ? (
             <>
               <button className="btn-ghost" onClick={onClose}>
-                取消
+                {t("modal.cancel")}
               </button>
               <button
                 className="btn-primary"
                 disabled={!password || loading}
                 onClick={doExport}
               >
-                {loading ? "解密中…" : "解密并导出"}
+                {loading ? t("export.decrypting") : t("export.submit")}
               </button>
             </>
           ) : (
             <>
               <button className="btn-ghost" onClick={onClose}>
-                关闭
+                {t("modal.close")}
               </button>
               <button className="btn-primary" onClick={copy}>
-                {copied ? "已复制" : "复制"}
+                {copied ? t("modal.copied") : t("modal.copy")}
               </button>
             </>
           )}

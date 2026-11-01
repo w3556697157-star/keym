@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { api, KeyItem, Stats } from "../api";
+import { useI18n } from "../i18n";
 
 export default function Dashboard() {
+  const { t, terr } = useI18n();
   const [stats, setStats] = useState<Stats | null>(null);
   const [recent, setRecent] = useState<KeyItem[]>([]);
   const [checking, setChecking] = useState(false);
@@ -13,7 +15,8 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    load().catch(console.error);
+    load().catch((e) => console.error(terr(String(e))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAll = async () => {
@@ -22,19 +25,19 @@ export default function Dashboard() {
       await api.checkAllKeys();
       await load();
     } catch (e) {
-      alert(String(e));
+      alert(terr(String(e)));
     } finally {
       setChecking(false);
     }
   };
 
-  if (!stats) return <div className="loading">加载中…</div>;
+  if (!stats) return <div className="loading">{t("loading")}</div>;
 
   const cards = [
-    { label: "密钥总数", value: stats.total, icon: "🔢", cls: "c-total" },
-    { label: "可用密钥", value: stats.active, icon: "✅", cls: "c-active" },
-    { label: "已过期", value: stats.expired, icon: "⏰", cls: "c-expired" },
-    { label: "校验失败", value: stats.invalid, icon: "⚠️", cls: "c-invalid" },
+    { label: t("dash.total"), value: stats.total, icon: "🔢", cls: "c-total" },
+    { label: t("dash.active"), value: stats.active, icon: "✅", cls: "c-active" },
+    { label: t("dash.expired"), value: stats.expired, icon: "⏰", cls: "c-expired" },
+    { label: t("dash.invalid"), value: stats.invalid, icon: "⚠️", cls: "c-invalid" },
   ];
 
   return (
@@ -53,29 +56,29 @@ export default function Dashboard() {
 
       <div className="panel">
         <div className="panel-head">
-          <h3>安全概况</h3>
+          <h3>{t("dash.overview")}</h3>
           <button
             className="btn-primary"
             onClick={checkAll}
             disabled={checking}
           >
-            {checking ? "校验中…" : "一键校验全部"}
+            {checking ? t("dash.checking") : t("dash.checkAll")}
           </button>
         </div>
         <table className="table">
           <thead>
             <tr>
-              <th>密钥名称</th>
-              <th>密钥值</th>
-              <th>创建时间</th>
-              <th>状态</th>
+              <th>{t("dash.colName")}</th>
+              <th>{t("dash.colValue")}</th>
+              <th>{t("dash.colCreated")}</th>
+              <th>{t("dash.colStatus")}</th>
             </tr>
           </thead>
           <tbody>
             {recent.length === 0 && (
               <tr>
                 <td colSpan={4} className="empty">
-                  暂无密钥，去「Api密钥管理」添加吧
+                  {t("dash.empty")}
                 </td>
               </tr>
             )}
@@ -97,12 +100,13 @@ export default function Dashboard() {
 }
 
 export function StatusTag({ status }: { status: string }) {
-  const map: Record<string, { text: string; cls: string }> = {
-    active: { text: "启用", cls: "tag-green" },
-    expired: { text: "已过期", cls: "tag-gray" },
-    invalid: { text: "已失效", cls: "tag-red" },
-    unknown: { text: "未校验", cls: "tag-blue" },
+  const { t } = useI18n();
+  const map: Record<string, { key: string; cls: string }> = {
+    active: { key: "status.active", cls: "tag-green" },
+    expired: { key: "status.expired", cls: "tag-gray" },
+    invalid: { key: "status.invalid", cls: "tag-red" },
+    unknown: { key: "status.unknown", cls: "tag-blue" },
   };
   const s = map[status] ?? map.unknown;
-  return <span className={`tag ${s.cls}`}>{s.text}</span>;
+  return <span className={`tag ${s.cls}`}>{t(s.key)}</span>;
 }

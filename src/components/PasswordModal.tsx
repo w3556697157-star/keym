@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useI18n } from "../i18n";
 
 export default function PasswordModal({
   title,
   warning,
-  confirmText = "确认",
+  confirmText,
   onConfirm,
   onClose,
 }: {
@@ -13,6 +14,7 @@ export default function PasswordModal({
   onConfirm: (password: string) => Promise<void>;
   onClose: () => void;
 }) {
+  const { t, terr } = useI18n();
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -24,7 +26,7 @@ export default function PasswordModal({
     try {
       await onConfirm(password);
     } catch (e) {
-      setError(String(e));
+      setError(terr(String(e)));
     } finally {
       setBusy(false);
     }
@@ -41,28 +43,28 @@ export default function PasswordModal({
         </div>
         <div className="modal-body">
           {warning && <div className="warn-note">{warning}</div>}
-          <label className="form-label">账号密码</label>
+          <label className="form-label">{t("pwd.pwdLabel")}</label>
           <input
             className="input"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="输入当前账号密码以确认操作"
+            placeholder={t("pwd.pwdPh")}
             autoFocus
           />
           {error && <div className="login-error">{error}</div>}
         </div>
         <div className="modal-foot">
           <button className="btn-ghost" onClick={onClose}>
-            取消
+            {t("modal.cancel")}
           </button>
           <button
             className="btn-primary"
             disabled={!password || busy}
             onClick={submit}
           >
-            {busy ? "处理中…" : confirmText}
+            {busy ? t("modal.processing") : (confirmText ?? t("modal.confirmSave"))}
           </button>
         </div>
       </div>

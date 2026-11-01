@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { api, KeyItem } from "../api";
+import { useI18n } from "../i18n";
 import { StatusTag } from "./Dashboard";
 import KeyModal from "../components/KeyModal";
 import ExportModal from "../components/ExportModal";
@@ -14,15 +15,10 @@ const JSON_FILTER = {
 
 const PAGE_SIZE = 8;
 
-const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: "", label: "全部状态" },
-  { value: "active", label: "启用" },
-  { value: "expired", label: "已过期" },
-  { value: "invalid", label: "已失效" },
-  { value: "unknown", label: "未校验" },
-];
+const STATUS_VALUES = ["active", "expired", "invalid", "unknown"];
 
 export default function ApiKeys() {
+  const { t, terr } = useI18n();
   const [keys, setKeys] = useState<KeyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<KeyItem | null>(null);
@@ -56,7 +52,7 @@ export default function ApiKeys() {
   };
 
   useEffect(() => {
-    load().catch((e) => showToast(String(e)));
+    load().catch((e) => showToast(terr(String(e))));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -84,11 +80,11 @@ export default function ApiKeys() {
     setBusyDelete(true);
     try {
       await api.deleteKey(deleting.id);
-      showToast(`密钥「${deleting.name}」已删除`);
+      showToast(t("keys.toastDeleted", { name: deleting.name }));
       setDeleting(null);
       await load();
     } catch (e) {
-      showToast(String(e));
+      showToast(terr(String(e)));
     } finally {
       setBusyDelete(false);
     }
@@ -98,10 +94,15 @@ export default function ApiKeys() {
     setCheckingId(k.id);
     try {
       const updated = await api.checkKey(k.id);
-      showToast(`「${k.name}」校验结果：${updated.status}`);
+      showToast(
+        t("keys.toastChecked", {
+          name: k.name,
+          status: t(`status.${updated.status}`),
+        })
+      );
       await load();
     } catch (e) {
-      showToast(String(e));
+      showToast(terr(String(e)));
     } finally {
       setCheckingId(null);
     }
@@ -115,7 +116,7 @@ export default function ApiKeys() {
     });
     if (!path) return;
     const n = await api.exportAll(password, String(path));
-    showToast(`导出成功：共 ${n} 条密钥已写入文件`);
+    showToast(t("keys.toastExported", { n }));
     setExportAllPwd(false);
   };
 
@@ -132,7 +133,7 @@ export default function ApiKeys() {
   const onImport = async (password: string) => {
     if (!importPath) return;
     const n = await api.importKeys(password, importPath);
-    showToast(`导入成功：共导入 ${n} 条密钥`);
+    showToast(t("keys.toastImported", { n }));
     setImportPath(null);
     setPage(1);
     await load();
@@ -141,16 +142,16 @@ export default function ApiKeys() {
   return (
     <div>
       <div className="page-head">
-        <h2>Api密钥管理</h2>
+        <h2>{t("keys.title")}</h2>
         <div className="head-actions">
           <button className="btn-ghost" onClick={onPickImport}>
-            导入
+            {t("keys.import")}
           </button>
           <button className="btn-ghost" onClick={() => setExportAllPwd(true)}>
-            导出全部
+            {t("keys.exportAll")}
           </button>
           <button className="btn-primary" onClick={() => setCreating(true)}>
-            ＋ 新建密钥
+            {t("keys.newKey")}
           </button>
         </div>
       </div>
@@ -164,7 +165,7 @@ export default function ApiKeys() {
             setPage(1);
           }}
         >
-          <option value="">全部服务商</option>
+          <option value="">{t("keys.allProviders")}</option>
           {providers.map((p) => (
             <option key={p} value={p}>
               {p}
@@ -179,35 +180,34 @@ export default function ApiKeys() {
             setPage(1);
           }}
         >
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
+          <option value="">{t("keys.allStatus")}</option>
+          {STATUS_VALUES.map((s) => (
+            <option key={s} value={s}>
+              {t(`status.${s}`)}
             </option>
           ))}
         </select>
-        <span className="filter-count">共 {filtered.length} 条</span>
+        <span className="filter-count">{t("keys.count", { n: filtered.length })}</span>
       </div>
 
       <div className="panel">
         <table className="table">
           <thead>
             <tr>
-              <th>密钥名称</th>
-              <th>服务商</th>
-              <th>密钥值（密文）</th>
-              <th>创建时间</th>
-              <th>到期时间</th>
-              <th>状态</th>
-              <th>操作</th>
+              <th>{t("keys.colName")}</th>
+              <th>{t("keys.colProvider")}</th>
+              <th>{t("keys.colValue")}</th>
+              <th>{t("keys.colCreated")}</th>
+              <th>{t("keys.colExpires")}</th>
+              <th>{t("keys.colStatus")}</th>
+              <th>{t("keys.colOps")}</th>
             </tr>
           </thead>
           <tbody>
             {!loading && view.length === 0 && (
               <tr>
                 <td colSpan={7} className="empty">
-                  {keys.length === 0
-                    ? "暂无数据，点击右上角「新建密钥」添加"
-                    : "当前筛选条件下暂无数据"}
+                  {keys.length === 0 ? t("keys.emptyNoData") : t("keys.emptyFiltered")}
                 </td>
               </tr>
             )}
@@ -222,9 +222,9 @@ export default function ApiKeys() {
                   <StatusTag status={k.status} />
                 </td>
                 <td className="ops">
-                  <a onClick={() => setEditing(k)}>编辑</a>
+                  <a onClick={() => setEditing(k)}>{t("keys.opEdit")}</a>
                   <a className="op-export" onClick={() => setExporting(k)}>
-                    导出
+                    {t("keys.opExport")}
                   </a>
                   <a
                     className="op-check"
@@ -234,10 +234,10 @@ export default function ApiKeys() {
                       pointerEvents: checkingId === k.id ? "none" : "auto",
                     }}
                   >
-                    {checkingId === k.id ? "校验中" : "校验"}
+                    {checkingId === k.id ? t("keys.opChecking") : t("keys.opCheck")}
                   </a>
                   <a className="op-danger" onClick={() => setDeleting(k)}>
-                    删除
+                    {t("keys.opDelete")}
                   </a>
                 </td>
               </tr>
@@ -250,17 +250,17 @@ export default function ApiKeys() {
             disabled={curPage <= 1}
             onClick={() => setPage(curPage - 1)}
           >
-            上一页
+            {t("keys.prev")}
           </button>
           <span className="pager-info">
-            第 {curPage} / {pages} 页
+            {t("keys.pageInfo", { cur: curPage, pages })}
           </span>
           <button
             className="btn-ghost pager-btn"
             disabled={curPage >= pages}
             onClick={() => setPage(curPage + 1)}
           >
-            下一页
+            {t("keys.next")}
           </button>
         </div>
       </div>
@@ -289,26 +289,26 @@ export default function ApiKeys() {
       )}
       {exportAllPwd && (
         <PasswordModal
-          title="导出全部密钥"
-          warning="导出文件包含全部密钥明文，请妥善保管；导出需输入账号密码确认。"
-          confirmText="确认并选择保存位置"
+          title={t("keys.exportAllTitle")}
+          warning={t("keys.exportAllWarn")}
+          confirmText={t("keys.exportAllConfirm")}
           onConfirm={onExportAll}
           onClose={() => setExportAllPwd(false)}
         />
       )}
       {importPath && (
         <PasswordModal
-          title="导入密钥"
-          warning={`将从 ${importPath} 导入密钥（JSON 格式），导入需输入账号密码确认。`}
-          confirmText="确认导入"
+          title={t("keys.importTitle")}
+          warning={t("keys.importWarn", { path: importPath })}
+          confirmText={t("keys.importConfirm")}
           onConfirm={onImport}
           onClose={() => setImportPath(null)}
         />
       )}
       {deleting && (
         <ConfirmModal
-          title="删除密钥"
-          message={`确定删除密钥「${deleting.name}」吗？删除后无法恢复。`}
+          title={t("keys.deleteTitle")}
+          message={t("keys.deleteMsg", { name: deleting.name })}
           busy={busyDelete}
           onConfirm={onDelete}
           onClose={() => setDeleting(null)}

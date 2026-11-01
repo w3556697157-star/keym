@@ -1,11 +1,5 @@
 import { Page } from "../App";
-
-const NAV: { key: Page; label: string; icon: string }[] = [
-  { key: "dashboard", label: "首页", icon: "🏠" },
-  { key: "keys", label: "Api密钥管理", icon: "🔑" },
-  { key: "sync", label: "云同步", icon: "☁️" },
-  { key: "about", label: "关于我们", icon: "ℹ️" },
-];
+import { useI18n } from "../i18n";
 
 export default function Sidebar({
   page,
@@ -14,13 +8,20 @@ export default function Sidebar({
   page: Page;
   onNavigate: (p: Page) => void;
 }) {
+  const { t } = useI18n();
+  const NAV: { key: Page; label: string; icon: string }[] = [
+    { key: "dashboard", label: t("menu.home"), icon: "🏠" },
+    { key: "keys", label: t("menu.keys"), icon: "🔑" },
+    { key: "sync", label: t("menu.sync"), icon: "☁️" },
+    { key: "about", label: t("menu.about"), icon: "ℹ️" },
+  ];
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">KeyM</div>
       <nav>
         {NAV.map((n) => (
           <div
-            key={n.label}
+            key={n.key}
             className={`nav-item ${page === n.key ? "nav-active" : ""}`}
             onClick={() => onNavigate(n.key)}
           >
@@ -34,7 +35,7 @@ export default function Sidebar({
         onClick={() => onNavigate("settings")}
       >
         <span className="nav-icon">⚙️</span>
-        设置
+        {t("menu.settings")}
       </div>
     </aside>
   );

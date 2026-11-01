@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api, KeyItem } from "../api";
+import { useI18n } from "../i18n";
 
 const PROVIDERS = [
   "OpenAI",
@@ -34,6 +35,7 @@ export default function KeyModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t, terr } = useI18n();
   const isEdit = !!item;
   const [name, setName] = useState(item?.name ?? "");
   const [provider, setProvider] = useState(item?.provider ?? "OpenAI");
@@ -83,7 +85,7 @@ export default function KeyModal({
       return;
     }
     if (isEdit && !confirmPwd) {
-      setError("请输入账号密码以确认保存");
+      setError(t("keym.pwdEmptyErr"));
       return;
     }
     setSaving(true);
@@ -92,7 +94,7 @@ export default function KeyModal({
       await doSave(isEdit ? confirmPwd : "");
       onSaved();
     } catch (e) {
-      setError(String(e));
+      setError(terr(String(e)));
     } finally {
       setSaving(false);
     }
@@ -102,7 +104,7 @@ export default function KeyModal({
     <div className="modal-mask" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <h3>{isEdit ? "编辑密钥" : "新建密钥"}</h3>
+          <h3>{isEdit ? t("keym.editTitle") : t("keym.createTitle")}</h3>
           <span className="modal-close" onClick={onClose}>
             ✕
           </span>
@@ -110,29 +112,29 @@ export default function KeyModal({
         <div className="modal-body">
           {isEdit && confirming ? (
             <>
-              <div className="warn-note">注意：修改后无法恢复</div>
-              <label className="form-label">账号密码</label>
+              <div className="warn-note">{t("keym.confirmWarn")}</div>
+              <label className="form-label">{t("keym.pwdLabel")}</label>
               <input
                 className="input"
                 type="password"
                 value={confirmPwd}
                 onChange={(e) => setConfirmPwd(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submit()}
-                placeholder="输入账号密码以确认保存"
+                placeholder={t("keym.pwdPhConfirm")}
                 autoFocus
               />
             </>
           ) : (
             <>
-              <label className="form-label">密钥名称</label>
+              <label className="form-label">{t("keym.nameLabel")}</label>
               <input
                 className="input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="例如：生产环境密钥"
+                placeholder={t("keym.namePh")}
               />
 
-              <label className="form-label">服务商</label>
+              <label className="form-label">{t("keym.providerLabel")}</label>
               <select
                 className="input"
                 value={provider}
@@ -146,17 +148,18 @@ export default function KeyModal({
               </select>
 
               <label className="form-label">
-                API Key{isEdit && "（留空则不修改）"}
+                {t("keym.keyLabel")}
+                {isEdit && t("keym.keyEditHint")}
               </label>
               <input
                 className="input mono"
                 type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder={isEdit ? "留空保持原密钥" : "sk-..."}
+                placeholder={isEdit ? t("keym.keyPhEdit") : t("keym.keyPhNew")}
               />
 
-              <label className="form-label">到期时间（可选）</label>
+              <label className="form-label">{t("keym.expiresLabel")}</label>
               <input
                 className="input"
                 type="date"
@@ -164,7 +167,7 @@ export default function KeyModal({
                 onChange={(e) => setExpiresAt(e.target.value)}
               />
 
-              <label className="form-label">备注（可选）</label>
+              <label className="form-label">{t("keym.notesLabel")}</label>
               <textarea
                 className="input"
                 rows={2}
@@ -181,14 +184,18 @@ export default function KeyModal({
             className="btn-ghost"
             onClick={() => (isEdit && confirming ? setConfirming(false) : onClose())}
           >
-            {isEdit && confirming ? "返回修改" : "取消"}
+            {isEdit && confirming ? t("modal.back") : t("modal.cancel")}
           </button>
           <button
             className="btn-primary"
             disabled={(isEdit && confirming ? !confirmPwd : !canSubmit) || saving}
             onClick={submit}
           >
-            {saving ? "保存中…" : isEdit && confirming ? "确认保存" : "保存"}
+            {saving
+              ? t("modal.saving")
+              : isEdit && confirming
+                ? t("modal.confirmSave")
+                : t("modal.save")}
           </button>
         </div>
       </div>

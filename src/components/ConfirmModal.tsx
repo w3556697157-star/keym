@@ -1,7 +1,9 @@
+import { useI18n } from "../i18n";
+
 export default function ConfirmModal({
   title,
   message,
-  confirmText = "确认删除",
+  confirmText,
   busy,
   onConfirm,
   onClose,
@@ -13,6 +15,7 @@ export default function ConfirmModal({
   onConfirm: () => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="modal-mask" onClick={onClose}>
       <div className="modal modal-sm" onClick={(e) => e.stopPropagation()}>
@@ -27,10 +30,10 @@ export default function ConfirmModal({
         </div>
         <div className="modal-foot">
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            取消
+            {t("modal.cancel")}
           </button>
           <button className="btn-danger" onClick={onConfirm} disabled={busy}>
-            {busy ? "处理中…" : confirmText}
+            {busy ? t("modal.processing") : (confirmText ?? t("modal.confirmDelete"))}
           </button>
         </div>
       </div>

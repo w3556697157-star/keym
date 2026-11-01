@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, UserInfo } from "./api";
+import { useI18n } from "./i18n";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ApiKeys from "./pages/ApiKeys";
@@ -18,6 +19,7 @@ export type Page =
   | "about";
 
 export default function App() {
+  const { t } = useI18n();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [page, setPage] = useState<Page>("dashboard");
   const [booting, setBooting] = useState(true);
@@ -31,7 +33,7 @@ export default function App() {
   }, []);
 
   if (booting) {
-    return <div className="boot">加载中…</div>;
+    return <div className="boot">{t("boot.loading")}</div>;
   }
 
   if (!user) {
@@ -50,12 +52,12 @@ export default function App() {
       <div className="main">
         <header className="topbar">
           <h1 className="topbar-title">
-            {page === "dashboard" && "首页仪表盘"}
-            {page === "keys" && "Api密钥管理"}
-            {page === "sync" && "云同步"}
-            {page === "security" && "账号安全"}
-            {page === "settings" && "设置"}
-            {page === "about" && "关于我们"}
+            {page === "dashboard" && t("topbar.dashboard")}
+            {page === "keys" && t("topbar.keys")}
+            {page === "sync" && t("topbar.sync")}
+            {page === "security" && t("topbar.security")}
+            {page === "settings" && t("topbar.settings")}
+            {page === "about" && t("topbar.about")}
           </h1>
           <UserMenu
             username={user.username}
@@ -88,6 +90,7 @@ function UserMenu({
   onSettings: () => void;
   onSecurity: () => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   return (
@@ -104,7 +107,7 @@ function UserMenu({
               onSecurity();
             }}
           >
-            账号安全
+            {t("user.security")}
           </div>
           <div
             className="usermenu-item"
@@ -113,10 +116,10 @@ function UserMenu({
               onSettings();
             }}
           >
-            设置
+            {t("user.settings")}
           </div>
           <div className="usermenu-item" onClick={onLogout}>
-            退出登录
+            {t("user.logout")}
           </div>
         </div>
       )}

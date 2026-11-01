@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { api, UserInfo } from "../api";
+import { useI18n } from "../i18n";
 
 export default function Login({ onLogin }: { onLogin: (u: UserInfo) => void }) {
+  const { t, terr } = useI18n();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +28,7 @@ export default function Login({ onLogin }: { onLogin: (u: UserInfo) => void }) {
       const u = await api.login(username.trim(), password);
       onLogin(u);
     } catch (e) {
-      setError(String(e));
+      setError(terr(String(e)));
     } finally {
       setLoading(false);
     }
@@ -40,7 +42,7 @@ export default function Login({ onLogin }: { onLogin: (u: UserInfo) => void }) {
         <div className={`field ${error ? "field-error" : ""}`}>
           <span className="field-icon">👤</span>
           <input
-            placeholder="账号"
+            placeholder={t("login.accountPh")}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoFocus
@@ -49,7 +51,7 @@ export default function Login({ onLogin }: { onLogin: (u: UserInfo) => void }) {
         <div className={`field ${error ? "field-error" : ""}`}>
           <span className="field-icon">🔒</span>
           <input
-            placeholder="密码（至少 6 位）"
+            placeholder={t("login.pwdPh")}
             type={showPwd ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -58,7 +60,7 @@ export default function Login({ onLogin }: { onLogin: (u: UserInfo) => void }) {
           <span
             className="field-eye"
             onClick={() => setShowPwd((v) => !v)}
-            title={showPwd ? "隐藏密码" : "显示密码"}
+            title={showPwd ? "•••" : "•••"}
           >
             {showPwd ? "🙈" : "👁"}
           </span>
@@ -67,7 +69,7 @@ export default function Login({ onLogin }: { onLogin: (u: UserInfo) => void }) {
           <div className="field">
             <span className="field-icon">🔒</span>
             <input
-              placeholder="确认密码"
+              placeholder={t("login.confirmPh")}
               type={showPwd ? "text" : "password"}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
@@ -83,32 +85,40 @@ export default function Login({ onLogin }: { onLogin: (u: UserInfo) => void }) {
         >
           {loading
             ? mode === "login"
-              ? "登录中…"
-              : "注册中…"
+              ? t("login.loggingIn")
+              : t("login.registering")
             : mode === "login"
-              ? "登录"
-              : "注册并登录"}
+              ? t("login.submitLogin")
+              : t("login.submitRegister")}
         </button>
         <div className="login-switch">
           {mode === "login" ? (
             <span>
-              还没有账号？
-              <a onClick={() => { setMode("register"); setError(""); }}>
-                立即注册
+              {t("login.noAccount")}
+              <a
+                onClick={() => {
+                  setMode("register");
+                  setError("");
+                }}
+              >
+                {t("login.registerNow")}
               </a>
             </span>
           ) : (
             <span>
-              已有账号？
-              <a onClick={() => { setMode("login"); setError(""); }}>
-                返回登录
+              {t("login.hasAccount")}
+              <a
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                }}
+              >
+                {t("login.backLogin")}
               </a>
             </span>
           )}
         </div>
-        <div className="login-tip">
-          密码用于派生加密密钥，请妥善保管，忘记密码将无法解密已保存的密钥。
-        </div>
+        <div className="login-tip">{t("login.tip")}</div>
       </div>
     </div>
   );

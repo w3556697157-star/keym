@@ -1,25 +1,47 @@
 import { UserInfo } from "../api";
+import { useI18n } from "../i18n";
 
 export default function Settings({ user }: { user: UserInfo }) {
+  const { t, locale, setLocale } = useI18n();
   return (
-    <div className="panel">
-      <h3>账号信息</h3>
-      <div className="settings-row">
-        <span className="settings-label">当前账号</span>
-        <span>{user.username}</span>
+    <div>
+      <div className="panel">
+        <h3>{t("settings.title")}</h3>
+        <div className="settings-row">
+          <span className="settings-label">{t("settings.account")}</span>
+          <span>{user.username}</span>
+        </div>
+        <div className="settings-row">
+          <span className="settings-label">{t("settings.storage")}</span>
+          <span>{t("settings.storageVal")}</span>
+        </div>
+        <div className="settings-row">
+          <span className="settings-label">{t("settings.crypto")}</span>
+          <span>{t("settings.cryptoVal")}</span>
+        </div>
+        <div className="settings-tip">{t("settings.tip")}</div>
       </div>
-      <div className="settings-row">
-        <span className="settings-label">数据存储</span>
-        <span>本地 SQLite（应用数据目录 keym.db）</span>
-      </div>
-      <div className="settings-row">
-        <span className="settings-label">加密方式</span>
-        <span>
-          AES-256-GCM；密钥由登录密码经 Argon2id 派生，不上传、不共享
-        </span>
-      </div>
-      <div className="settings-tip">
-        注意：修改/忘记密码将导致已保存的密钥无法解密，请谨慎操作。
+
+      <div className="panel">
+        <h3>{t("settings.langTitle")}</h3>
+        <div className="settings-row">
+          <span className="settings-label">{t("settings.langTitle")}</span>
+          <span className="lang-switch">
+            <button
+              className={`btn-ghost lang-btn ${locale === "zh" ? "lang-active" : ""}`}
+              onClick={() => setLocale("zh")}
+            >
+              {t("settings.langZh")}
+            </button>
+            <button
+              className={`btn-ghost lang-btn ${locale === "en" ? "lang-active" : ""}`}
+              onClick={() => setLocale("en")}
+            >
+              {t("settings.langEn")}
+            </button>
+          </span>
+        </div>
+        <div className="settings-tip">{t("settings.langTip")}</div>
       </div>
     </div>
   );
