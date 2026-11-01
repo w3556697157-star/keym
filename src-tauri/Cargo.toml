@@ -29,3 +29,11 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-feature
 tokio = { version = "1", features = ["full"] }
 thiserror = "1"
 zeroize = "1"
+
+# 发布构建：关闭 LTO、提高并行度以控制构建时长；strip 减小体积
+[profile.release]
+codegen-units = 16
+lto = false
+opt-level = 2
+panic = "abort"
+strip = true

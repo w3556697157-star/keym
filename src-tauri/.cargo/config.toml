@@ -1,3 +1,5 @@
 [target.x86_64-pc-windows-gnu]
 linker = "C:\\Users\\wang1\\Desktop\\Code\\WebCode\\mingw\\mingw64\\bin\\gcc.exe"
 ar = "C:\\Users\\wang1\\Desktop\\Code\\WebCode\\mingw\\mingw64\\bin\\ar.exe"
+# 静态链接 MinGW 运行时，产出单文件自包含 exe（朋友机器无需 MinGW 环境）
+rustflags = ["-C", "target-feature=+crt-static"]
